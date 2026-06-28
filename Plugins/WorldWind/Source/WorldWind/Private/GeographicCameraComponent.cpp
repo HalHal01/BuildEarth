@@ -158,7 +158,9 @@ bool UGeographicCameraComponent::PickingRayIntersection(int32 ScreenX, int32 Scr
 
 	if (UMathEngine::RayIntersectSphere(RayStartWorldSpace, RayEndWorldSpace, FVector::ZeroVector, m_WorldRadius, Intersections))
 	{
-		Intersection = UMathEngine::CartesianToSpherical(Intersections.v1);
+		// 不做这步转换
+		Intersection = Intersections.v1;
+		//Intersection = UMathEngine::CartesianToSpherical(Intersections.v1);
 		/*FVector SphericalCoord = UMathEngine::CartesianToSpherical(Intersections.v1);
 
 		Latitude = SphericalCoord.Z;
@@ -379,4 +381,213 @@ void UGeographicCameraComponent::OnViewportResized(FViewport* ViewPort, uint32 a
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, ViewPort->GetSizeXY().ToString());
 	m_ViewPortSize.Set(ViewPort->GetSizeXY().X,  ViewPort->GetSizeXY().Y);
 	ComputeAbsoluteMatrices();
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+FRotator UGeographicCameraComponent::computeCenterRotation(FVector Loc)
+{
+    return UKismetMathLibrary::FindLookAtRotation(FVector::ZeroVector, Loc)/*.Quaternion()*/;
+    //return FQuat
+}
+
+bool UGeographicCameraComponent::ScreenToWorld(int32 ScreenX, int32 ScreenY, FVector& Intersection)
+{
+    return false;
+}
+
+void UGeographicCameraComponent::setDistance(double newDistance)
+{
+}
+
+void UGeographicCameraComponent::setCenter(FVector newCenter)
+{
+    
+}
+
+void UGeographicCameraComponent::collisionDetect()
+{
+}
+
+
+// 在鼠标处缩放
+// 相机缩放
+void UGeographicCameraComponent::Zoom(double dx, double dy)
+{
+    /*if (isTethering())
+    {
+        double scale = 1.0f + dy;
+        setDistance( _distance * scale );
+        collisionDetect();
+        return;
+    }
+
+    if (_settings->getZoomToMouse() == false || in_view == NULL)
+    {
+        recalculateCenterFromLookVector();
+        double scale = 1.0f + dy;
+        setDistance( _distance * scale );
+        collisionDetect();
+        return;
+    }*/
+
+    
+    
+	// todo:鼠标是第次去获取还是保存在变量里？
+    float MouseX = 0.f, MouseY = 0.f;
+    APlayerController* Controller = GetWorld()->GetFirstPlayerController();
+    Controller->GetMousePosition(MouseX, MouseY);
+    // 
+    /*
+    Controller->GetViewportSize(InstanceData->ScreenSize.X, InstanceData->ScreenSize.Y);
+    */
+    
+    
+    // Zoom to mouseish
+
+    /*osgViewer::View* view = dynamic_cast<osgViewer::View*>(in_view);
+    if ( !view )
+        return;
+
+    if (_ga_t0 == NULL)
+        return;
+
+    float x = _ga_t0->getX(), y = _ga_t0->getY();
+    float local_x, local_y;
+
+    const osg::Camera* camera = view->getCameraContainingPosition(x, y, local_x, local_y);
+    if (!camera)
+        camera = view->getCamera();
+
+    if ( !camera )
+        return;
+
+    // reset the "remembered start location" if we're just starting a continuous zoom
+    static osg::Vec3d zero(0,0,0);
+    
+    if (_last_action._type != ACTION_ZOOM)
+        _lastPointOnEarth = zero;*/
+
+    /*osg::Vec3d*/ FVector target;
+
+    bool onEarth = false;
+    if (_LastPointOnEarth != FVector::ZeroVector)
+    {
+        // Use the start location (for continuous zoom) 
+        target = _LastPointOnEarth;
+    }
+    else
+    {
+        // Zoom just started; calculate a start location
+        onEarth = PickingRayIntersection(MouseX, MouseY, target);  // 鼠标是否落在球面上？
+    }
+
+    if (onEarth)
+    {
+        _LastPointOnEarth = target;
+
+        /*if (_srs.valid() && _srs->isGeographic())
+        {*/
+            // globe
+
+            
+            // 初始中心点（地球表面某点）
+            //FVector center = FVector(0, 1000, 0);  // 赤道上的点
+
+            // 目标点（鼠标点击位置）
+            //FVector target = UMathEngine::SphericalToCartesian(30, 30, 10000);
+            //FVector target = FVector(1000*FMath::Sin(PI/6), 1000*FMath::Cos(PI/6), 0);  // 经度偏移0.1弧度
+
+            // 计算旋转四元数
+            //FQuat rotCenterToTarget = FQuat::FindBetweenVectors(Center, target);
+
+            // 插值比例
+            //double ratio = 0.5;  // 50% 插值
+
+            // 执行球面插值
+	
+            /*
+            rot.slerp(ratio, osg::Quat(), rotCenterToTarget);
+        
+            // 计算新中心点
+            osg::Vec3d newCenter = rot * center;
+            */
+
+
+	
+            //FQuat rot = FQuat::Slerp(FQuat::Identity, rotCenterToTarget, ratio);
+            //rot.RotateVector(Center);
+
+            //return FVector(0, 0, 0);
+            
+            
+            
+            // Calcuate a rotation that we'll use to interpolate from our center point to the target
+            //osg::Quat rotCenterToTarget;
+            //rotCenterToTarget.makeRotate(_center, target);
+    	
+			FQuat rotCenterToTarget = FQuat::FindBetweenVectors(Center, target);
+
+            // Factor by which to scale the distance:
+            double scale = 1.0f + dy;
+            double newDistance = _distance*scale;
+            double delta = _distance - newDistance;
+            double ratio = delta/_distance;
+
+            // xform target point into the current focal point's local frame,
+            // and adjust the zoom ratio to account for the difference in 
+            // target distance based on the earth's curvature...approximately!
+        _centerRotation = UKismetMathLibrary::FindLookAtRotation(FVector::ZeroVector, Center);
+        FVector targetInLocalFrame = _centerRotation.UnrotateVector(target);
+        
+        
+            //osg::Vec3d targetInLocalFrame = _centerRotation.conj()*target;
+            double crRatio = Center.Length() / targetInLocalFrame.X;
+            ratio *= crRatio;
+
+            // Interpolate a new focal point:
+            //osg::Quat rot;
+            //rot.slerp(ratio, osg::Quat(), rotCenterToTarget);
+        
+        FQuat rot = FQuat::Slerp(FQuat::Identity, rotCenterToTarget, ratio);
+        Center = rot*Center;
+
+            // recompute the local frame:
+            _centerRotation = computeCenterRotation(m_Center);
+
+            // and set the new zoomed distance.
+            setDistance(newDistance);
+
+            collisionDetect();
+        /*}*/
+        /*else
+        {
+            // projected map. This will a simple linear interpolation
+            // of the eyepoint along the path between the eye and the target.
+            osg::Vec3d eye, at, up;
+            getWorldInverseMatrix().getLookAt(eye, at, up);
+
+            osg::Vec3d eyeToTargetVec = target-eye;
+            eyeToTargetVec.normalize();
+
+            double scale = 1.0f + dy;
+            double newDistance = _distance*scale;
+            double delta = _distance - newDistance;
+            double ratio = delta/_distance;
+            
+            osg::Vec3d newEye = eye + eyeToTargetVec*delta;
+
+            setByLookAt(newEye, newEye+(at-eye), up);
+        }*/
+    }
+
+    else
+    {
+        // if the user's mouse isn't over the earth, just zoom in to the center of the screen
+        double scale = 1.0f + dy;
+        setDistance( _distance * scale );
+        collisionDetect();
+    }
 }

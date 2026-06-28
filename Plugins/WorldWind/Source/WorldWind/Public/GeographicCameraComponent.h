@@ -117,6 +117,7 @@ public:
 	}
 
 	// Calculates latitude and longitude for given screen coordinate.
+	UFUNCTION(BlueprintPure)
 	bool PickingRayIntersection(int32 ScreenX, int32 ScreenY, FVector& Intersection);
 	
 	// Calculates latitude and longitude for given screen coordinate.
@@ -148,4 +149,30 @@ public:
 
 	// Distance：视线与球的交点的长度
 	void ComputeTilt(double Altitude, double Distance);
+	
+	
+	
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	// 从OSGEARTH抄的
+	
+	
+	void Zoom(double dx, double dy);
+	
+	// 焦点的ENU
+	FRotator _centerRotation; // 其实就是
+	
+	FRotator computeCenterRotation(FVector Loc);
+	FVector _LastPointOnEarth;
+	// 初始中心点（地球表面某点）
+	FVector Center;
+	bool ScreenToWorld(int32 ScreenX, int32 ScreenY, FVector& Intersection);
+	
+	void setDistance(double newDistance);
+	void setCenter(FVector newCenter);
+	//CreateLocalCoordFrame(FVector newCenter);
+	
+	double _distance;
+
+	void collisionDetect();
 };

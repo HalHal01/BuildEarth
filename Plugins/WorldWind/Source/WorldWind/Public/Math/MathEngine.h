@@ -6,6 +6,7 @@
 
 
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "MathEngine.generated.h"
 
 /**
@@ -201,5 +202,29 @@ public:
 		int32 Minute = FMath::TruncToInt32(FMath::Frac(DecDegree) * 60);
 		float Second = (FMath::Frac(DecDegree) - (float)Minute*60) * 3600;
 		return FString::Printf(TEXT("%dE%02d%f"), Degree, Minute, Second);
+	}
+	
+	
+	
+	
+	
+	
+	// 传入经纬度坐标及半径，计算在球面上的笛卡尔坐标
+	// 角度单位均为度
+	UFUNCTION(BlueprintPure, Category="MathEngine")
+	static FRotator SphericalToCartesian01(double Latitude, double Longitude)
+	{
+		double RadLat = FMath::DegreesToRadians(Latitude);
+		double RadLon = FMath::DegreesToRadians(Longitude);
+
+		double RadCosLat = FMath::Cos(RadLat);
+		double RadSinLat = FMath::Sin(RadLat);
+		
+		FVector Up = FVector(RadCosLat * FMath::Sin(RadLon), RadCosLat * FMath::Cos(RadLon), FMath::Sin(RadLat));
+		FVector Right = FVector(RadSinLat * FMath::Sin(RadLon), RadSinLat * FMath::Cos(RadLon), -FMath::Cos(RadLat));
+		FVector Forward = FVector(FMath::Sin(RadLon + HALF_PI), FMath::Cos(RadLon + HALF_PI), 0);
+		
+		return UKismetMathLibrary::MakeRotationFromAxes(Forward, Right, Up);
+		
 	}
 };
