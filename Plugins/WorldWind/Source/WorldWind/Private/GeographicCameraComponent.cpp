@@ -46,10 +46,23 @@ void UGeographicCameraComponent::ComputeAbsoluteMatrices()
 		GNearClippingPlane);
 
 	m_CameraPosition = UMathEngine::SphericalToCartesian(m_Latitude, m_Longitude, (m_WorldRadius + m_Altitude));
-	FMatrix RotationMatrix = FRotationMatrix::MakeFromX(-m_CameraPosition);
+	
+	// 计算相机位置及旋转就可以了
+	
+	//FMatrix RotationMatrix = FRotationMatrix::MakeFromX(-m_CameraPosition);
+	
+	m_Center = UMathEngine::SphericalToCartesian(m_Latitude, m_Longitude, m_WorldRadius);
 
+	
+	
+	FMatrix RotationMatrix = UMathEngine::SphericalToCartesian01(m_Latitude, m_Longitude);
+	
+	
+	RotationMatrix = FRotationMatrix(FRotator(m_Tilt, m_Heading - 90, 0)) * RotationMatrix;
+	
+	m_CameraPosition = m_Center + RotationMatrix.TransformVector(FVector(-m_Distance, 0.f, 0.f));
 	// 旋转顺序的缘故，必须折成两个单独的旋转矩阵
-	RotationMatrix = FRotationMatrix(FRotator(m_Tilt, 0, 0)) * FRotationMatrix(FRotator(0, 0, m_Heading)) * RotationMatrix;
+	//RotationMatrix = FRotationMatrix(FRotator(m_Tilt, 0, 0)) * FRotationMatrix(FRotator(0, 0, m_Heading)) * RotationMatrix;
 	m_CameraRotation = RotationMatrix.Rotator();
 
 	m_ViewMatrix = RotationMatrix.Inverse() * FMatrix(

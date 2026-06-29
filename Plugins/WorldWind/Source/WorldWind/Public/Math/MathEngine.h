@@ -209,10 +209,10 @@ public:
 	
 	
 	
-	// 传入经纬度坐标及半径，计算在球面上的笛卡尔坐标
+	// 传入经纬度坐标，计算在球面上的笛卡尔坐标
 	// 角度单位均为度
 	UFUNCTION(BlueprintPure, Category="MathEngine")
-	static FRotator SphericalToCartesian01(double Latitude, double Longitude)
+	static FMatrix SphericalToCartesian01(double Latitude, double Longitude)
 	{
 		double RadLat = FMath::DegreesToRadians(Latitude);
 		double RadLon = FMath::DegreesToRadians(Longitude);
@@ -224,7 +224,9 @@ public:
 		FVector Right = FVector(RadSinLat * FMath::Sin(RadLon), RadSinLat * FMath::Cos(RadLon), -FMath::Cos(RadLat));
 		FVector Forward = FVector(FMath::Sin(RadLon + HALF_PI), FMath::Cos(RadLon + HALF_PI), 0);
 		
-		return UKismetMathLibrary::MakeRotationFromAxes(Forward, Right, Up);
+		return FMatrix(Forward, Right, Up, FVector::ZeroVector);
+		
+		//return UKismetMathLibrary::MakeRotationFromAxes(Forward, Right, Up);
 		
 	}
 };

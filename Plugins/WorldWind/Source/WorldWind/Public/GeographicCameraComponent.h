@@ -42,28 +42,28 @@ public:
 public:
 	double m_WorldRadius = 1000000.0; // The planet's radius in meters.默认为1000公里
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadWrite)
 	double m_Latitude = 30.43208599;  // 大约在家的位置
 
-	UPROPERTY(BlueprintReadOnly)  // 大约在家的位置
+	UPROPERTY(BlueprintReadWrite)  // 大约在家的位置
 	double m_Longitude = 104.07214522;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadWrite) // 高度计算出来的
 	double m_Altitude = 20000.0; // Altitude above sea level
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadWrite)
 	double m_Heading = 15; // 就是测绘里面的方位角，与北方向的夹角，顺时针方向
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadWrite)
 	double m_Tilt = 15.0; // 视线方向与球心的夹角
 
 	UPROPERTY(BlueprintReadOnly)
 	double m_Bank = 0; // TODO01：当于Yaw，相关功能还没有做
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadWrite)
 	double m_Distance; // Distance from eye to target
 
-	UPROPERTY(BlueprintReadWrite, BlueprintGetter=CameraPosition, Category="Media")
+	UPROPERTY(BlueprintReadWrite, BlueprintGetter=CameraPosition, Category="Camera")
 	FVector m_CameraPosition; // Camera position (World XYZ coordinates)
 
 	UPROPERTY(BlueprintReadOnly)
@@ -96,6 +96,7 @@ public:
 		return m_CameraRotation;
 	}
 
+	UFUNCTION(BlueprintCallable)
 	void ComputeAbsoluteMatrices();
 
 	// Sets camera position.所有参数单位均为十进制度
@@ -172,6 +173,7 @@ public:
 	void setCenter(FVector newCenter);
 	//CreateLocalCoordFrame(FVector newCenter);
 	
+	UPROPERTY(BlueprintReadWrite)
 	double _distance;
 
 	void collisionDetect();
